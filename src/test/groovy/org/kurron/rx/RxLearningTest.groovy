@@ -20,6 +20,7 @@ import spock.lang.Specification
 import rx.Observable
 
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 /**
  * Learning test to exercise the Rx Java APIs.
@@ -58,14 +59,14 @@ class RxLearningTest extends Specification {
 
     def 'exercise observer from future'() {
         given: 'a future'
-        def data = [cancel: { println 'cancel called' ; true },
-                    isCancelled: { println 'isCancelled called' ; true },
-                    isDone: { println 'isDone called' ; true },
-                    get: { println 'get called' ; Thread.sleep( 1000 ) ; 'some string' }
+        def future = [cancel: { println 'cancel called' ; true },
+                      isCancelled: { println 'isCancelled called' ; true },
+                      isDone: { println 'isDone called' ; true },
+                      get: { long timeout, TimeUnit unit -> println 'get called' ; Thread.sleep( 1000 ) ; 'some string' }
         ] as Future<String>
 
         and: 'an observable'
-        def observable = Observable.from( data )
+        def observable = Observable.from( future, 500, TimeUnit.MILLISECONDS )
 
         when: 'the observer is attached to the observer'
         observable.subscribe( observer )
