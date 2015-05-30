@@ -15,7 +15,7 @@
  */
 package org.kurron.rx
 
-import rx.functions.Action1
+import rx.Observer
 import spock.lang.Specification
 import rx.Observable
 
@@ -24,7 +24,7 @@ import rx.Observable
  */
 class RxLearningTest extends Specification {
 
-    def 'exercise widget'() {
+    def 'exercise observer'() {
         given: 'stream of data'
         def data = ['a', 'b', 'c']
 
@@ -32,7 +32,9 @@ class RxLearningTest extends Specification {
         def observable = Observable.from( data )
 
         and: 'an observer'
-        def observer = { it -> println it } as Action1<String>
+        def observer = [onCompleted: { println 'onCompleted called!'},
+                        onError: { Throwable t -> println "onError called: ${t.message}" },
+                        onNext: { String s -> println "onNext called with ${s}"} ] as Observer<String>
 
         when: 'the observer is attached to the observer'
         observable.subscribe( observer )
