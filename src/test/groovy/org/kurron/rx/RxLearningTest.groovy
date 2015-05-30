@@ -24,22 +24,33 @@ import rx.Observable
  */
 class RxLearningTest extends Specification {
 
-    def 'exercise observer'() {
+    def observer = [onCompleted: { println 'onCompleted called!'},
+                    onError: { Throwable t -> println "onError called: ${t.message}" },
+                    onNext: { String s -> println "onNext called with ${s}"} ] as Observer<String>
+
+    def 'exercise observer from list'() {
         given: 'stream of data'
         def data = ['a', 'b', 'c']
 
         and: 'an observable'
         def observable = Observable.from( data )
 
-        and: 'an observer'
-        def observer = [onCompleted: { println 'onCompleted called!'},
-                        onError: { Throwable t -> println "onError called: ${t.message}" },
-                        onNext: { String s -> println "onNext called with ${s}"} ] as Observer<String>
+        when: 'the observer is attached to the observer'
+        observable.subscribe( observer )
+
+        then: 'the data stream is printed out'
+    }
+
+    def 'exercise observer from iterable'() {
+        given: 'stream of data'
+        def data = ['a', 'b', 'c'] as Iterable
+
+        and: 'an observable'
+        def observable = Observable.from( data )
 
         when: 'the observer is attached to the observer'
         observable.subscribe( observer )
 
         then: 'the data stream is printed out'
-
     }
 }
