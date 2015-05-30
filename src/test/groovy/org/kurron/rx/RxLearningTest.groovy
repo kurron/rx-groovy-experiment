@@ -19,6 +19,8 @@ import rx.Observer
 import spock.lang.Specification
 import rx.Observable
 
+import java.util.concurrent.Future
+
 /**
  * Learning test to exercise the Rx Java APIs.
  */
@@ -44,6 +46,23 @@ class RxLearningTest extends Specification {
     def 'exercise observer from iterable'() {
         given: 'stream of data'
         def data = ['a', 'b', 'c'] as Iterable
+
+        and: 'an observable'
+        def observable = Observable.from( data )
+
+        when: 'the observer is attached to the observer'
+        observable.subscribe( observer )
+
+        then: 'the data stream is printed out'
+    }
+
+    def 'exercise observer from future'() {
+        given: 'a future'
+        def data = [cancel: { println 'cancel called' ; true },
+                    isCancelled: { println 'isCancelled called' ; true },
+                    isDone: { println 'isDone called' ; true },
+                    get: { println 'get called' ; Thread.sleep( 1000 ) ; 'some string' }
+        ] as Future<String>
 
         and: 'an observable'
         def observable = Observable.from( data )
