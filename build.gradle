@@ -31,6 +31,7 @@ apply from: "$rootDir/gradle/conflicts.gradle"
 
 dependencies {
     compile "org.codehaus.groovy:groovy-all:${groovyVersion}:indy"
+    compile "io.reactivex:rxjava:${rxJavaVersion}"
 }
 
 ext.coverageExcludes = []
