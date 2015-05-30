@@ -16,6 +16,7 @@
 package org.kurron.rx
 
 import rx.Observer
+import rx.Subscriber
 import spock.lang.Specification
 import rx.Observable
 
@@ -70,6 +71,25 @@ class RxLearningTest extends Specification {
 
         when: 'the observer is attached to the observer'
         observable.subscribe( observer )
+
+        then: 'the data stream is printed out'
+    }
+
+    def 'exercise synchronous observable'() {
+        given: 'an observable'
+        Observable<String> observable = Observable.create { Subscriber<String> aSubscriber ->
+            ('a'..'z').each { letter ->
+                if ( !aSubscriber.unsubscribed ) {
+                    aSubscriber.onNext( letter )
+                }
+            }
+            if (!aSubscriber.unsubscribed ) {
+                aSubscriber.onCompleted()
+            }
+        }
+
+        when: 'the observer is attached to the observer'
+        observable.subscribe {  println( it ) } as Subscriber<String>
 
         then: 'the data stream is printed out'
     }
