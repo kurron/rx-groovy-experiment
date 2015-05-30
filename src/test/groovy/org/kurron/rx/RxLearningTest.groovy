@@ -77,16 +77,39 @@ class RxLearningTest extends Specification {
 
     def 'exercise synchronous observable'() {
         given: 'an observable'
-        Observable<String> observable = Observable.create { Subscriber<String> aSubscriber ->
+        def observable = Observable.create { Subscriber<String> aSubscriber ->
             ('a'..'z').each { letter ->
                 if ( !aSubscriber.unsubscribed ) {
                     aSubscriber.onNext( letter )
                 }
             }
-            if (!aSubscriber.unsubscribed ) {
+            if ( !aSubscriber.unsubscribed ) {
                 aSubscriber.onCompleted()
             }
         }
+
+        when: 'the observer is attached to the observer'
+        observable.subscribe {  println( it ) } as Subscriber<String>
+
+        then: 'the data stream is printed out'
+    }
+
+    def 'exercise asynchronous observable'() {
+        given: 'an observable'
+        def callback = { Subscriber<String> aSubscriber ->
+            Thread.start {
+                ('A'..'Z').each { letter ->
+                    if (!aSubscriber.unsubscribed) {
+                        aSubscriber.onNext(letter)
+                    }
+                }
+                if (!aSubscriber.unsubscribed) {
+                    aSubscriber.onCompleted()
+                }
+            }
+        } as Observable.OnSubscribe<String>
+
+        def observable = Observable.create( callback )
 
         when: 'the observer is attached to the observer'
         observable.subscribe {  println( it ) } as Subscriber<String>
