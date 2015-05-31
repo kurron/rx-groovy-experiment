@@ -147,7 +147,7 @@ class RxLearningTest extends Specification {
         }
 
         when: 'the observer is attached to the observer'
-        observable.subscribe( [onError: { Exception e -> println e.message } ] as Subscriber<String> )
+        observable.onErrorReturn { 'default string' }.subscribe {  println( it ) } as Subscriber<String>
 
         then: 'the data stream is printed out'
     }
