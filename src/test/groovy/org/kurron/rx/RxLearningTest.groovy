@@ -32,6 +32,30 @@ class RxLearningTest extends Specification {
                     onError: { Throwable t -> println "onError called: ${t.message}" },
                     onNext: { String s -> println "onNext called with ${s}"} ] as Observer<String>
 
+    def lowercaseTask = { Subscriber<String> aSubscriber ->
+        ('a'..'z').each { letter ->
+            if ( !aSubscriber.unsubscribed ) {
+                aSubscriber.onNext( letter )
+            }
+        }
+        if ( !aSubscriber.unsubscribed ) {
+            aSubscriber.onCompleted()
+        }
+    }
+
+    def uppercaseTask = { Subscriber<String> aSubscriber ->
+        Thread.start {
+            ('A'..'Z').each { letter ->
+                if (!aSubscriber.unsubscribed) {
+                    aSubscriber.onNext(letter)
+                }
+            }
+            if (!aSubscriber.unsubscribed) {
+                aSubscriber.onCompleted()
+            }
+        }
+    } as Observable.OnSubscribe<String>
+
     def 'exercise observer from list'() {
         given: 'stream of data'
         def data = ['a', 'b', 'c']
@@ -77,16 +101,7 @@ class RxLearningTest extends Specification {
 
     def 'exercise synchronous observable'() {
         given: 'an observable'
-        def observable = Observable.create { Subscriber<String> aSubscriber ->
-            ('a'..'z').each { letter ->
-                if ( !aSubscriber.unsubscribed ) {
-                    aSubscriber.onNext( letter )
-                }
-            }
-            if ( !aSubscriber.unsubscribed ) {
-                aSubscriber.onCompleted()
-            }
-        }
+        def observable = Observable.create( lowercaseTask )
 
         when: 'the observer is attached to the observer'
         observable.subscribe {  println( it ) } as Subscriber<String>
@@ -96,20 +111,8 @@ class RxLearningTest extends Specification {
 
     def 'exercise asynchronous observable'() {
         given: 'an observable'
-        def callback = { Subscriber<String> aSubscriber ->
-            Thread.start {
-                ('A'..'Z').each { letter ->
-                    if (!aSubscriber.unsubscribed) {
-                        aSubscriber.onNext(letter)
-                    }
-                }
-                if (!aSubscriber.unsubscribed) {
-                    aSubscriber.onCompleted()
-                }
-            }
-        } as Observable.OnSubscribe<String>
 
-        def observable = Observable.create( callback )
+        def observable = Observable.create( uppercaseTask )
 
         when: 'the observer is attached to the observer'
         observable.subscribe {  println( it ) } as Subscriber<String>
@@ -119,19 +122,20 @@ class RxLearningTest extends Specification {
 
     def 'exercise synchronous transformations'() {
         given: 'an observable'
-        def observable = Observable.create { Subscriber<String> aSubscriber ->
-            ('a'..'z').each { letter ->
-                if ( !aSubscriber.unsubscribed ) {
-                    aSubscriber.onNext( letter )
-                }
-            }
-            if ( !aSubscriber.unsubscribed ) {
-                aSubscriber.onCompleted()
-            }
-        }
+        def observable = Observable.create( lowercaseTask )
 
         when: 'the observer is attached to the observer'
         observable.skip( 10 ).take( 5 ).map { it + '!' }.subscribe {  println( it ) } as Subscriber<String>
+
+        then: 'the data stream is printed out'
+    }
+
+    def 'exercise observable merge'() {
+        given: 'an observable'
+        def observable = Observable.merge( Observable.from( ('0'..'9')  ), Observable.from( ('A'..'Z') ) )
+
+        when: 'the observer is attached to the observer'
+        observable.subscribe {  println( it ) } as Subscriber<String>
 
         then: 'the data stream is printed out'
     }
