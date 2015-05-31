@@ -116,4 +116,24 @@ class RxLearningTest extends Specification {
 
         then: 'the data stream is printed out'
     }
+
+    def 'exercise synchronous transformations'() {
+        given: 'an observable'
+        def observable = Observable.create { Subscriber<String> aSubscriber ->
+            ('a'..'z').each { letter ->
+                if ( !aSubscriber.unsubscribed ) {
+                    aSubscriber.onNext( letter )
+                }
+            }
+            if ( !aSubscriber.unsubscribed ) {
+                aSubscriber.onCompleted()
+            }
+        }
+
+        when: 'the observer is attached to the observer'
+        observable.skip( 10 ).take( 5 ).map { it + '!' }.subscribe {  println( it ) } as Subscriber<String>
+
+        then: 'the data stream is printed out'
+    }
+
 }
