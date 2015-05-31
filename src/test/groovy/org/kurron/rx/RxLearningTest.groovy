@@ -140,4 +140,16 @@ class RxLearningTest extends Specification {
         then: 'the data stream is printed out'
     }
 
+    def 'exercise error handling'() {
+        given: 'an observable'
+        def observable = Observable.create { Subscriber<String> aSubscriber ->
+            aSubscriber.onError( new RuntimeException( 'Forced to fail! ') )
+        }
+
+        when: 'the observer is attached to the observer'
+        observable.subscribe( [onError: { Exception e -> println e.message } ] as Subscriber<String> )
+
+        then: 'the data stream is printed out'
+    }
+
 }
